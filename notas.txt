@@ -1,0 +1,8 @@
+
+inicializar proyecto
+npm init --yes
+
+instalacion dependencias
+npm i inquirer
+
+
