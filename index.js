@@ -157,6 +157,17 @@ function createFile(nameFile, data) {
 }
 
 function checkDirectory(directory) {
+	exec(`net use ${directory} /user COMCEL\\EIG7324A `, (err, stdout, stderr) => {
+		if (err) {
+			// node couldn't execute the command
+			return;
+		}
+
+		// the *entire* stdout and stderr (buffered)
+		console.log(`stdout: ${stdout}`);
+		console.log(`stderr: ${stderr}`);
+	});
+
 	//net use x: \\computer name\sharename / user username password
 	fs.stat(directory, function(err) {
 		//Check if error defined and the error code is "not exists"
