@@ -1,89 +1,9 @@
 
 const inquirer = require('inquirer');
 const moment = require('moment');
+const fs = require('fs');
 
-// // preguntas
-// // inquirer.prompt([{
-// //     name: 'color',
-// //     message: 'What is your favorite color?',
-// //     default: 'red'
-// // },{
-// //     name: 'website',
-// //     message: 'What is your favorite website?'
-// // }]).then(answer => {
-// //     console.log("Answer: ",  answer);
-// // });
-
-
-// // listas
-// inquirer.prompt([{
-//     type: "list",
-//     name: "list_colors",
-//     message: "which are your favorite color?",
-//     choices: ["red", "blue", "green"]
-// },
-// {
-//     type: "rawlist",
-//     name: "raw_colors",
-//     message: "which are your favorite color?",
-//     choices: ["red", "blue", "green"]
-// },
-// {
-//     type: "rawlist",
-//     name: "option_colors",
-//     message: "which are your favorite color?",
-//     choices: ["red", "blue", "green"]
-// },
-// {
-//     type: "expand",
-//     name: "expand_colors",
-//     message: "which are your favorite color?",
-//     choices: [
-//         { key: "r", value:"red"},
-//         { key: "g", value:"green"},
-//         { key: "w", value:"white"}
-//     ]
-// },{
-//     type: "checkbox",
-//     name: "check_colors",
-//     message: "which are your favorite color?",
-//     choices: ["red", "green", "white"]
-// },
-// {
-//     type: "password",
-//     name: "pass",
-//     message: "password: "
-// },
-// {
-//     type: "password",
-//     name: "pass_2",
-//     message: "password: ",
-//     mask: "*"
-// },
-// // {
-// //     type: "editor",
-// //     name: "code",
-// //     message: "Press enter for open editor"
-// // }
-// ]).then(answer => {
-//     console.log('Answer: ', answer);
-// });
-
-
-
-// preguntas
-// inquirer.prompt([{
-//     name: 'color',
-//     message: 'What is your favorite color?',
-//     default: 'red'
-// },{
-//     name: 'website',
-//     message: 'What is your favorite website?'
-// }]).then(answer => {
-//     console.log("Answer: ",  answer);
-// });
-
-const presentationIPs = [
+const applicationIPs = [
     { name: "WPOLPS02", ip: "172.22.85.65", snActive: true },
     { name: "WPOLPS03", ip: "172.22.85.35", snActive: true },
     { name: "WPOLPS04", ip: "172.22.85.36", snActive: true },
@@ -109,16 +29,17 @@ const aspIPs = [
     { name: "WPOLI4", ip: "172.22.4.108", snActive: true }
 ];
 
+const applications = [];
+const services = [];
+const asp = [];
+let baseFolder = "";
+let nameBrief = "";
 
 function getFolders(){
     return [
         {
             name: "origin_folder",
             message: "Ingrese ruta carpeta origen: "
-        },
-        {
-            name: "backup_folder",
-            message: "Ingrese ruta carpeta de backup: "
         },
         {
             name: "destiny_folder",
@@ -138,15 +59,21 @@ async function cathDataProject(index){
     console.log(`*******  Proyecto ${index}  *******`);
 
     const { title } = await inquirer.prompt({ name: 'title', message: 'Titulo del proyecto: ' });
-    const { origin_folder, backup_folder, destiny_folder }  = await inquirer.prompt(getFolders());
+    const { origin_folder, destiny_folder }  = await inquirer.prompt(getFolders());
 
     return {
         index,
         title,
         origin_folder,
-        backup_folder,
         destiny_folder
     }
+}
+
+function createCopyFolder(title, origin, destiny, ip, name){
+    let body = `@Echo *******COMIENZA LA EJECUCION DEL BAT PAP::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\PAP_svr_${title}.txt \n`;
+    body  += `XCOPY "${baseFolder}${origin}*.*" "\\\\${ip}\\d$${destiny}" /H /K /E /R /Y /F /I >> ${baseFolder}\\Logs\\PAP_svr_${title}.txt \n\n`;
+
+    return body;
 }
 
 function generateBatch(){
@@ -154,64 +81,144 @@ function generateBatch(){
 @rem       Proceso Puesta en produccion
 @rem       Creado por: HITSS
 @rem       fecha: ${moment().format('DD/MM/YYYY')}
-@rem **********************************************\n\n`;
+@rem       Brief: ${nameBrief}
+@rem **********************************************\n`;
 
-    let useNetworks = `net use "\\\\172.22.4.47\\PPPoliedros"
+    let useNetworks = `\nnet use "\\\\172.22.4.47\\PPPoliedros"
 net use "\\\\172.22.4.47\\BACKUPPPP" \n\n`;
 
-    if(presentation.length > 0){
-        for(server of presentationIPs){
+    let bodyApplication = ``;
+    let bodyService = ``;
+    let bodyASP = ``;
+
+    if(applications.length > 0){
+        useNetworks += `@REM SERVER APLICATION \n`;
+
+        for(server of applicationIPs){
             useNetworks += `net use "\\\\${server.ip}\\d$" \n`;
+        }
+
+        // se recorren los proyectos
+        for(serverP of applications){
+            bodyApplication += `\n@Echo Se ha INICIADO el proceso de PAP del cambio Brief ${nameBrief} - ${serverP.title} \n\n`;
+
+            // se recorren los servidores
+            for(server of applicationIPs){
+                bodyApplication += createCopyFolder(serverP.title, serverP.origin_folder, serverP.destiny_folder, server.ip, server.name);
+            }
+
+            bodyApplication += `@Echo Se ha FINALIZADO el proceso de PAP del cambio Brief ${nameBrief} - ${serverP.title} \n\n`;
         }
     }
 
     if(services.length > 0){
+        useNetworks += `\n@REM SERVER SERVICES \n`;
+
         for(server of servicesIPs){
             useNetworks += `net use "\\\\${server.ip}\\d$" \n`;
         }
-    }
 
-    if(aspIPs.length > 0){
-        for(server of aspIPs){
-            useNetworks += `net use "\\\\${server.ip}\\d$" \n`;
+        for(serverP of services){
+            bodyApplication += `\n@Echo Se ha INICIADO el proceso de PAP del cambio Brief ${nameBrief} - ${serverP.title} \n\n`;
+
+            // se recorren los servidores
+            for(server of servicesIPs){
+                bodyApplication += createCopyFolder(serverP.title, serverP.origin_folder, serverP.destiny_folder, server.ip, server.name);
+            }
+
+            bodyApplication += `@Echo Se ha FINALIZADO el proceso de PAP del cambio Brief ${nameBrief} - ${serverP.title} \n\n`;
         }
     }
 
+    if(asp.length > 0){
+        useNetworks += `\n@REM SERVER ASP \n`;
 
-    return `${title} ${useNetworks}`;
+        for(server of aspIPs){
+            useNetworks += `net use "\\\\${server.ip}\\d$" \n`;
+        }
 
+        for(serverP of asp){
+            bodyApplication += `\n@Echo Se ha INICIADO el proceso de PAP del cambio Brief ${nameBrief} - ${serverP.title} \n\n`;
+
+            // se recorren los servidores
+            for(server of aspIPs){
+                bodyApplication += createCopyFolder(serverP.title, serverP.origin_folder, serverP.destiny_folder, server.ip, server.name);
+            }
+
+            bodyApplication += `@Echo Se ha FINALIZADO el proceso de PAP del cambio Brief ${nameBrief} - ${serverP.title} \n\n`;
+        }
+    }
+
+    const result = `${title} ${useNetworks} ${bodyApplication} \n\n PAUSE`;
+
+    createFile('Puesta_en_produccion', result);
 }
 
-const presentation = [];
-const services = [];
-const asp = [];
+function createFile(nameFile, data){
+    fs.writeFile(`${nameFile}.bat`, data, (err) => {
+        if(err) throw err;
+        console.log(`Archivo ${nameFile}.bat ha sido creado correctamente.`);
+    });
+}
 
+function checkDirectory(directory){
+    fs.stat(directory, function(err, stats) {
+    //Check if error defined and the error code is "not exists"
+    if (err && err.errno === 34) {
+      console.log(`La carpeta dada no existe o no es accesible`);
+    } else {
+      //just in case there was a different error:
+      console.log(`La carpeta dada no existe o no es accesible: ${err.message}`);
+    }
+  });
+}
 
 async function main(){
 
-    const { servers } = await inquirer.prompt(
-    {
-        type: "checkbox",
-        name: "servers",
-        message: "Seleccione servidores: ",
-        choices: ["Presentacion", "Servicios", "ASP_Clasico"]
-    });
+    const { servers, base_folder, name_brief } = await inquirer.prompt([
+        {
+            name: "name_brief",
+            message: "Ingrese Numero del Brief: ",
+        },
+        {
+            name: "base_folder",
+            message: "Ingrese ruta carpeta del Brief: ",
+        },
+        {
+            type: "checkbox",
+            name: "servers",
+            message: "Seleccione servidores: ",
+            choices: ["Aplicacion", "Servicios", "ASP_Clasico"]
+        }
+    ]);
+
+    checkDirectory(base_folder);
+    return;
+
+    nameBrief = name_brief;
+    baseFolder = base_folder;
 
     for(server of servers){
         switch (server) {
-            case "Presentacion":
-                const resultPresentation = await inquirer.prompt(getQuantityProjects());
-                let quantity_projects_p = resultPresentation.quantity_projects;
+            case "Aplicacion":
+                console.clear();
+                console.log(`****************************`);
+                console.log(`*******  Aplicacion  *******\n\n`);
+                const resultApplication = await inquirer.prompt(getQuantityProjects());
+                let quantity_projects_p = resultApplication.quantity_projects;
 
                 for (let index = 1; index <= quantity_projects_p; index++) {
                     const project = await cathDataProject(index);
-                    presentation.push(project);
+                    applications.push(project);
                 }
 
-                console.log(presentation);
+                console.log(applications);
 
                 break;
             case "Servicios":
+                console.clear();
+                console.log(`****************************`);
+                console.log(`*******  Servicios  *******\n\n`);
                 const resultService = await inquirer.prompt(getQuantityProjects());
                 let quantity_projects_s = resultService.quantity_projects;
 
@@ -224,6 +231,9 @@ async function main(){
 
                 break;
             case "ASP_Clasico":
+                console.clear();
+                console.log(`****************************`);
+                console.log(`*******  ASP Clasico  *******\n\n`);
                 const resultClassic = await inquirer.prompt(getQuantityProjects());
                 let quantity_projects_c = resultClassic.quantity_projects;
 
@@ -238,11 +248,11 @@ async function main(){
         }
     }
 
-    console.log(generateBatch());
+    generateBatch();
 
 }
 
 console.log(`\n*************************************`);
-console.log(`*******  Generador Batch PAP  *******\n`);
+console.log(`*******  Generador Batch PAP  *******\n\n`);
 
 main();
