@@ -1,7 +1,6 @@
 const inquirer = require('inquirer');
 const moment = require('moment');
 const fs = require('fs');
-const { exec } = require('child_process');
 
 const applicationIPs = [
 	{ name: 'WPOLPS02', ip: '172.22.85.65', snActive: true },
@@ -157,20 +156,7 @@ function createFile(nameFile, data) {
 }
 
 function checkDirectory(directory) {
-	exec(`net use ${directory} /user COMCEL\\EIG7324A `, (err, stdout, stderr) => {
-		if (err) {
-			// node couldn't execute the command
-			return;
-		}
-
-		// the *entire* stdout and stderr (buffered)
-		console.log(`stdout: ${stdout}`);
-		console.log(`stderr: ${stderr}`);
-	});
-
-	//net use x: \\computer name\sharename / user username password
 	fs.stat(directory, function(err) {
-		//Check if error defined and the error code is "not exists"
 		if (err) {
 			console.log(`La carpeta dada no existe o no es accesible ${err.message}`);
 		}
@@ -196,7 +182,6 @@ async function main() {
 	]);
 
 	checkDirectory(base_folder);
-	return;
 
 	nameBrief = name_brief;
 	baseFolder = base_folder;
@@ -212,10 +197,11 @@ async function main() {
 
 				for (let index = 1; index <= quantity_projects_p; index++) {
 					const project = await cathDataProject(index);
+					checkDirectory(`${base_folder}${project.origin_folder}`);
+					checkDirectory(`${base_folder}${project.destiny_folder}`);
+
 					applications.push(project);
 				}
-
-				console.log(applications);
 
 				break;
 			case 'Servicios':
@@ -227,10 +213,11 @@ async function main() {
 
 				for (let index = 1; index <= quantity_projects_s; index++) {
 					const project = await cathDataProject(index);
+					checkDirectory(`${base_folder}${project.origin_folder}`);
+					checkDirectory(`${base_folder}${project.destiny_folder}`);
+
 					services.push(project);
 				}
-
-				console.log(services);
 
 				break;
 			case 'ASP_Clasico':
@@ -242,10 +229,11 @@ async function main() {
 
 				for (let index = 1; index <= quantity_projects_c; index++) {
 					const project = await cathDataProject(index);
+					checkDirectory(`${base_folder}${project.origin_folder}`);
+					checkDirectory(`${base_folder}${project.destiny_folder}`);
+
 					asp.push(project);
 				}
-
-				console.log(asp);
 
 				break;
 		}
