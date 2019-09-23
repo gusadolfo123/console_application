@@ -151,7 +151,7 @@ net use "\\\\172.22.4.47\\BACKUPPPP" \n\n`;
 function createFile(nameFile, data) {
 	fs.writeFile(`${nameFile}.bat`, data, err => {
 		if (err) throw err;
-		console.log(`Archivo ${nameFile}.bat ha sido creado correctamente.`);
+		console.log(`\n\nArchivo ${nameFile}.bat ha sido creado correctamente.\n\n`);
 	});
 }
 
@@ -159,7 +159,9 @@ function checkDirectory(directory) {
 	fs.stat(directory, function(err) {
 		if (err) {
 			console.log(`La carpeta dada no existe o no es accesible ${err.message}`);
+            return false;
 		}
+        return true;
 	});
 }
 
@@ -181,7 +183,7 @@ async function main() {
 		},
 	]);
 
-	checkDirectory(base_folder);
+	// if(!checkDirectory(base_folder)) return;
 
 	nameBrief = name_brief;
 	baseFolder = base_folder;
@@ -197,8 +199,8 @@ async function main() {
 
 				for (let index = 1; index <= quantity_projects_p; index++) {
 					const project = await cathDataProject(index);
-					checkDirectory(`${base_folder}${project.origin_folder}`);
-					checkDirectory(`${base_folder}${project.destiny_folder}`);
+                    // if(!checkDirectory(`${base_folder}${project.origin_folder}`)) return;
+                    // if(!checkDirectory(`${base_folder}${project.destiny_folder}`)) return;
 
 					applications.push(project);
 				}
@@ -213,8 +215,8 @@ async function main() {
 
 				for (let index = 1; index <= quantity_projects_s; index++) {
 					const project = await cathDataProject(index);
-					checkDirectory(`${base_folder}${project.origin_folder}`);
-					checkDirectory(`${base_folder}${project.destiny_folder}`);
+					// if(!checkDirectory(`${base_folder}${project.origin_folder}`)) return;
+                    // if(!checkDirectory(`${base_folder}${project.destiny_folder}`)) return;
 
 					services.push(project);
 				}
@@ -229,8 +231,8 @@ async function main() {
 
 				for (let index = 1; index <= quantity_projects_c; index++) {
 					const project = await cathDataProject(index);
-					checkDirectory(`${base_folder}${project.origin_folder}`);
-					checkDirectory(`${base_folder}${project.destiny_folder}`);
+					// if(!checkDirectory(`${base_folder}${project.origin_folder}`)) return;
+                    // if(!checkDirectory(`${base_folder}${project.destiny_folder}`)) return;
 
 					asp.push(project);
 				}
