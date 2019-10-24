@@ -3,17 +3,18 @@ const moment = require('moment');
 const { createFile } = require('./files');
 
 function createCopyFolder(title, origin, destiny, ip, name, baseFolder, type) {
+    let body = "";
     switch (type) {
         case "PAP":
-            let body = `@Echo *******COMIENZA LA EJECUCION DEL ${type}::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n`;
+            body = `@Echo *******COMIENZA LA EJECUCION DEL ${type}::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n`;
             body += `XCOPY "${baseFolder}${origin}\\*.*" "\\\\${ip}\\d$${destiny}" /H /K /E /R /Y /F /I >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n\n`;
             break;
         case "Rollback":
-            let body = `@Echo *******COMIENZA LA EJECUCION DEL ${type}::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n`;
+            body = `@Echo *******COMIENZA LA EJECUCION DEL ${type}::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n`;
             body += `XCOPY "${baseFolder}${origin}\\*.*" "\\\\${ip}\\d$${destiny}" /H /K /E /R /Y /F /I >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n\n`;
             break;
         case "Backup":
-            let body = `@Echo *******COMIENZA LA EJECUCION DEL ${type}::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n`;
+            body = `@Echo *******COMIENZA LA EJECUCION DEL ${type}::SERVIDOR_${name}::%date:~0,15%  %time:~0,8% *********** >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n`;
             body += `XCOPY "\\\\${ip}\\d$${destiny}\*.*" "${baseFolder}${origin}"  /H /K /E /R /Y /F /I >> ${baseFolder}\\Logs\\${type}_svr_${title}.txt \n\n`;
             break;
     }

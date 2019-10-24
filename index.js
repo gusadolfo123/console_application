@@ -39,9 +39,9 @@ const { catchInitialData, cathDataProject, cathDataPerIndividualProject } = requ
         }
     }
 
-    generateBatchBackUp(applications, services, asp, name_brief, base_folder);
+    //generateBatchBackUp(applications, services, asp, name_brief, base_folder);
     generateBatchPAP(applications, services, asp, name_brief, base_folder);
-    generateBatchRollback(applications, services, asp, name_brief, base_folder);
+    //generateBatchRollback(applications, services, asp, name_brief, base_folder);
 
 })();
 
