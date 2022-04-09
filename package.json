@@ -19,6 +19,6 @@
   "homepage": "https://github.com/gusadolfo123/console_application#readme",
   "dependencies": {
     "inquirer": "^7.0.0",
-    "moment": "^2.24.0"
+    "moment": "^2.29.2"
   }
 }
